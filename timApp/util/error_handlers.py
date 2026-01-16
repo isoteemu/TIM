@@ -2,6 +2,7 @@ import re
 import shelve
 import shutil
 import sys
+from textwrap import dedent
 import traceback
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -173,19 +174,25 @@ def report_error(err_msg: str, with_http_body: bool = False) -> None:
         _set_error_mute_info(error_code, mute_info)
 
     if with_http_body and has_request_context():
-        err_msg += f"\n\nHTTP Body:\n{get_request_message(include_body=True)}"
+        err_msg += dedent(f"""
 
-    message = f"""
-Exception happened on {get_current_time()} at {request.url}
+            HTTP Body:
+            {get_request_message(include_body=True)}
+            """)
 
-Exception database: {host}/view/{ERROR_CODES_FOLDER}/{error_code.lower()}
+    message = dedent(f"""
+        Exception occurred on {get_current_time()} at {request.url}
 
-{err_msg}
+        Exception database: {host}/view/{ERROR_CODES_FOLDER}/{error_code.lower()}
 
-{tb_str}
+        Error message: {err_msg}
 
-{f"This error will be muted for {humanize_timedelta(wuff_mute_duration)}." if will_mute_next else ""} 
-""".strip()
+        Stack trace:
+        {tb_str}
+
+        {"This error will be muted for " + humanize_timedelta(wuff_mute_duration) + "." if will_mute_next else ""}
+    """).strip()
+
     u = get_current_user_object()
     send_email(
         rcpt=app.config["ERROR_EMAIL"],
