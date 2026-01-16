@@ -253,7 +253,7 @@ def register_errorhandlers(app: Flask) -> None:
 
     @app.errorhandler(RouteException)
     def handle_route_exception(error: RouteException) -> ResponseReturnValue:
-        return error_generic(error.description, error.code)
+        return error_generic(error.description, error.code or 400)
 
     @app.errorhandler(TIMRedirectException)
     def handle_redirect_exception(error: TIMRedirectException) -> ResponseReturnValue:
