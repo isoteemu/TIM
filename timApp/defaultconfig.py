@@ -109,8 +109,8 @@ SENTRY_DSN: Optional[str] = os.getenv("SENTRY_DSN", None)
 """Sentry DSN for error tracking. Set to None to disable Sentry integration."""
 
 # Environment name for Sentry. If not set, default is attempted to be determined automatically.
-SENTRY_ENVIRONMENT: Optional[Literal['development', 'testing', 'production'] | str] = os.getenv("SENTRY_ENVIRONMENT", None)
-"""Environment name for Sentry (e.g., 'production', 'development', 'testing')."""
+SENTRY_ENVIRONMENT: Optional[Literal['prod', 'dev', 'test'] | str] = None
+"""Environment name for Sentry (e.g., 'prod', 'dev', 'test')."""
 
 SENTRY_TRACES_SAMPLE_RATE: float = 0.1
 """Sample rate for performance monitoring (0.0 to 1.0). Set to 0.0 to disable performance tracking."""

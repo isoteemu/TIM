@@ -20,7 +20,6 @@ from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
 from timApp.util.git_utils import is_dirty
 
-
 def setup_flask_sentry(app: Flask) -> None:
     """
     Set up Sentry error tracking for the Flask app.
@@ -49,22 +48,27 @@ def setup_flask_sentry(app: Flask) -> None:
  
     # Collect Sentry configuration from app config
     SENTRY_DSN = app.config.get("SENTRY_DSN")
-    SENTRY_ENVIRONMENT = app.config.get("SENTRY_ENVIRONMENT", None)
     SENTRY_TRACES_SAMPLE_RATE = app.config.get("SENTRY_TRACES_SAMPLE_RATE", 0.0)
+
+    # Determine release version. Prefer SENTRY_RELEASE, fallback to GIT_COMMIT_SHA
+    # If GIT_COMMIT_SHA is not set, release will be None, and Sentry will handle
+    # try to infer it automatically from git metadata (if available).
+    SENTRY_RELEASE = os.getenv("SENTRY_RELEASE", os.getenv("GIT_COMMIT_SHA", None))
 
     # Determine environment if not set
     # - If in debug or testing mode, set to development or testing
     # - If the git repo is dirty, set to development
     # - Otherwise, set to production
+    SENTRY_ENVIRONMENT = app.config.get("SENTRY_ENVIRONMENT", None)
     if SENTRY_ENVIRONMENT is None:
         if app.config.get("DEBUG", False):
-            SENTRY_ENVIRONMENT = "development"
+            SENTRY_ENVIRONMENT = "dev"
         elif app.config.get("TESTING", False):
-            SENTRY_ENVIRONMENT = "testing"
+            SENTRY_ENVIRONMENT = "test"
         elif is_dirty():
-            SENTRY_ENVIRONMENT = "development"
+            SENTRY_ENVIRONMENT = "dev"
         else:
-            SENTRY_ENVIRONMENT = "production"
+            SENTRY_ENVIRONMENT = "prod"
 
     if SENTRY_DSN:
         sentry_sdk.init(
@@ -84,4 +88,7 @@ def setup_flask_sentry(app: Flask) -> None:
 
             # Always disable sending PII to Sentry for privacy reasons
             send_default_pii=False,
+
+            release=SENTRY_RELEASE,
         )
+
