@@ -83,8 +83,10 @@ RUN bash -c "${APT_INSTALL} gpg-agent && ${APT_CLEANUP}"
 
 FROM base AS complete
 
-# Install Python, pip and other necessary packages
+# Optional build argument to set the git commit sha as an environment variable and image label
+ARG GIT_COMMIT_SHA
 
+# Install Python, pip and other necessary packages
 ENV PY_VERSION=3.11
 ENV PYTHON=python$PY_VERSION
 RUN bash -c "add-apt-repository -y ppa:deadsnakes/ppa && ${APT_CLEANUP}"
@@ -210,6 +212,10 @@ RUN DRIVER_ARCH=$(if [ "$(dpkg --print-architecture)" = "amd64" ]; then echo "li
   && ln -fs /opt/selenium/chromedriver-$CHROME_DRIVER_VERSION /usr/bin/chromedriver
 
 WORKDIR /service
+
+# Set git commit sha as environment variable and label
+ENV GIT_COMMIT_SHA=${GIT_COMMIT_SHA}
+LABEL org.opencontainers.image.revision=${GIT_COMMIT_SHA}
 
 CMD python3 launch.py
 
