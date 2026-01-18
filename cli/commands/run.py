@@ -2,6 +2,7 @@ from argparse import ArgumentParser, REMAINDER
 from typing import List, Optional
 
 from cli.docker.run import run_compose
+from cli.util.git import get_version_info
 
 info = {
     "help": "Run a command in a TIM container",
@@ -28,7 +29,7 @@ def run(args: Arguments) -> None:
     run_args.append(args.container)
     run_args.extend(args.args)
 
-    run_compose(run_args, args.profile)
+    run_compose(run_args, args.profile, extra_env={"GIT_COMMIT_SHA": get_version_info()})
 
 
 def init(parser: ArgumentParser) -> None:

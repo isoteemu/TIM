@@ -5,6 +5,7 @@ from typing import List, Optional, Callable, Dict, NamedTuple
 from cli.config import get_config
 from cli.docker.run import run_docker
 from cli.docker.service_variables import tim_image_tag, csplugin_image_tag
+from cli.util.git import get_version_info
 from cli.util.logging import log_info
 
 info = {
@@ -111,6 +112,9 @@ BUILD_TASKS: Dict[str, BuildTask] = {
 
 
 def run(args: Arguments) -> None:
+    if args.build_args is None:
+        args.build_args = []
+    args.build_args.append(f"GIT_COMMIT_SHA={get_version_info()}")
     built_images = []
     for task_name in args.tasks:
         parts = task_name.split(":", 1)
