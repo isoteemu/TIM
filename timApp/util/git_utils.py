@@ -1,4 +1,5 @@
 import subprocess
+from functools import lru_cache
 
 
 def try_fix_safe_dir_config() -> None:
@@ -51,3 +52,20 @@ def get_current_branch() -> str:
         )
     except:
         return "<detached>"
+
+
+@lru_cache(maxsize=1)
+def is_dirty() -> bool:
+    """
+    Check if the git repository is dirty – i.e., has uncommitted changes.
+
+    Note: The result is cached for the lifetime of the process.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain"], stdout=subprocess.PIPE
+        )
+        output = result.stdout.decode().strip()
+        return len(output) > 0
+    except:  # noqa: E722
+        return False

@@ -10,6 +10,7 @@ import multiprocessing
 import os
 from datetime import timedelta
 from pathlib import Path
+from typing import Literal, Optional
 
 from celery.schedules import crontab
 
@@ -102,6 +103,17 @@ WUFF_MAX_SAME_INTERVAL = 60 * 5  # 5 minutes
 """How long the same error can be reported before it is muted. Duration in seconds."""
 WUFF_MAX_SAME_MUTE_DURATION = 60 * 60  # 1 hour
 """How long the same error is muted after it has been reported too many times. Duration in seconds."""
+
+# Sentry error tracking and monitoring
+SENTRY_DSN: Optional[str] = os.getenv("SENTRY_DSN", None)
+"""Sentry DSN for error tracking. Set to None to disable Sentry integration."""
+
+# Environment name for Sentry. If not set, default is attempted to be determined automatically.
+SENTRY_ENVIRONMENT: Optional[Literal['development', 'testing', 'production'] | str] = os.getenv("SENTRY_ENVIRONMENT", None)
+"""Environment name for Sentry (e.g., 'production', 'development', 'testing')."""
+
+SENTRY_TRACES_SAMPLE_RATE: float = 0.1
+"""Sample rate for performance monitoring (0.0 to 1.0). Set to 0.0 to disable performance tracking."""
 
 GIT_LATEST_COMMIT_TIMESTAMP = get_latest_commit_timestamp()
 GIT_BRANCH = get_current_branch()

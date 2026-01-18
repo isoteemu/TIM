@@ -120,6 +120,7 @@ from timApp.util.flask.filters import (
 )
 from timApp.util.flask.user_agent import SimpleUserAgent
 from timApp.util.logger import setup_logging
+from timApp.util.tracing import setup_flask_sentry
 from timApp.util.utils import datestr_to_relative, date_to_relative
 from timApp.util.locale import get_locale
 from timApp.velp.annotation_model import Annotation
@@ -257,7 +258,10 @@ app.config.from_pyfile("defaultconfig.py", silent=False)
 app.config.from_envvar("TIM_SETTINGS", silent=True)
 app.config.from_file("hosts.json", load=json.load, silent=True)
 Request.user_agent_class = SimpleUserAgent
+
+# Initialize Sentry tracing and logging before anything else
 setup_logging(app)
+setup_flask_sentry(app)
 
 # Compress(app)
 db.init_app(app)
