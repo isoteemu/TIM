@@ -23,6 +23,7 @@ from flask.typing import ResponseReturnValue
 from markupsafe import Markup  # type: ignore
 from marshmallow import ValidationError
 from sass import CompileError
+import sentry_sdk
 from werkzeug.exceptions import HTTPException
 
 from timApp.answer.answers import TooLargeAnswerException
@@ -142,8 +143,25 @@ def report_error(err_msg: str, with_http_body: bool = False) -> None:
     _, ex, tb_obj = sys.exc_info()
     if isinstance(ex, SuppressedError):
         return
+
     tb_str = traceback.format_exc()
     error_code = get_exception_code(ex, tb_obj)
+
+     # Send to Sentry
+    if sentry_sdk.Hub.current.client:
+        with sentry_sdk.push_scope() as scope:
+            # Add context information
+            scope.set_context("tim_error", {
+                "message": err_msg,
+                "error_code": error_code,
+            })
+            # Due to privacy concerns, HTTP body is not sent to Sentry
+            # if with_http_body and has_request_context():
+            #     scope.set_context("http_body", {
+            #         "data": get_request_message(include_body=True)
+            #     })
+            sentry_sdk.capture_exception(ex)
+
     host = app.config["TIM_HOST"]
     wuff_mute_count = app.config["WUFF_MAX_SAME_COUNT"]
     wuff_mute_same_interval = timedelta(seconds=app.config["WUFF_MAX_SAME_INTERVAL"])
@@ -191,7 +209,7 @@ def report_error(err_msg: str, with_http_body: bool = False) -> None:
         {tb_str}
 
         {"This error will be muted for " + humanize_timedelta(wuff_mute_duration) + "." if will_mute_next else ""}
-    """).strip()
+        """).strip()
 
     u = get_current_user_object()
     send_email(
